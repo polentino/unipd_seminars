@@ -1,0 +1,173 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+%\usepackage[italian]{babel}  
+
+%% Se per qualsiasi motivo non riuscissi a compilare col tema Unipd,
+%% basta commentare la riga qui sotto e si passa automaticamente al
+%% tema beamer di default.
+\usetheme{Unipd}
+
+\title{Linguaggi e strumenti per applicativi software di simulazione intensiva}
+%\subtitle{da inserire}
+\author{Diego Casella, Fabio Marcuzzi}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Contenuti} %Outline
+\tableofcontents
+\end{frame}
+
+%% Introduzione
+\section{Introduzione}
+\begin{frame}{Introduzione}
+
+Appurate le complessit\'a di funzionamento della co-simulazione di un sistema controllato a microcontrollore,
+analizzeremo quest'oggi quali sono i linguaggi e gli strumenti idoneni per una co-simulazione intensiva ed
+amplieremo l'orizzonte delle applicazioni.
+
+\end{frame}
+
+\section{La GUI: Java, C++ o Python ?}
+\begin{frame}{la GUI: Java, C++ o Python ?}
+Java:
+\begin{itemize}
+\item non si interfaccia direttamente a Python (c'\'e Jython ma non poteva importare i moduli scritti in C);
+\item non molto efficiente (sul server per\'o lo si potrebbe compilare!);
+\item librerie grafiche (Swing) e diverse altre: sar\'a difficile tenerle aggiornate ?
+\item facile il reverse-engineering: con l'offuscamento ci sono problemi, ad es impossibile offuscare le chiamate a DLL, standard API (a meno di non shippare una JDK custom made), e l'interfaccia RMI tra server e client (deve essere comprensibile da entrambi)
+\item largamente insegnato nei corsi di laurea e facile da imparare;
+\item strumenti di sviluppo gratuiti e completi (Eclipse, NetBeans, ecc.)
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{la GUI: Java, C++ o Python ?}
+C++:
+\begin{itemize}
+\item riduzione di un layer di linguaggio, da \textit{Java$\rightarrow$C$\rightarrow$Python} a \textit{C++$\rightarrow$Python};
+\item efficienza
+\item esistenza di librerie opensource molto versatili come il framework Qt, multipiattaforma, che posseggono moduli per creare gui,  comunicazioni IPC, networking, multithreading, parsing xml, gestione IO, oltre ad un core con containers e data structures  ed una gestione facilitata della memoria
+\item reverse-engineering molto pi\'u tedioso
+\item pochi studenti conoscono C++, 
+\item strumenti di sviluppo gratuiti e completi come QtCreator/Eclipse/NetBeans/..,  tool di debug/analisi consolidati come gdb/valgrind/callgrind
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{la GUI: Java, C++ o Python ?}
+Python:
+\begin{itemize}
+\item non molto efficiente, ma ben legato a C/C++;
+\item accessibilit\'a alle librerie C/C++  attraverso wrapper;
+\item facile il reverse-engineering;
+\item sempre pi\'u diffuso tra gli studenti;
+\item strumenti di sviluppo gratuiti ma incompleti
+\end{itemize}
+\end{frame}
+
+\begin{frame}{la GUI: Java, C++ o Python ?}
+Questioni:
+\begin{itemize}
+\item Per usare C++ bisogna avere un'organizzazione pi\'u grande, essere pi\'u persone, di cui il gruppo "produzione" lavora
+in C++ e gli altri in Python/C  (o Java/C/Python) ?
+\item la difficolt\'a del C++ rispetto a Java \'e un problema? Verrebbe da dire: meglio avere l'onere di JNA ma la facilit\'a
+del codice Java, piuttosto che dover scrivere sempre in C++ ... Oppure al giorno d'oggi non \'e cos\'i difficile, dato che
+gli smart pointers a che gestiscono la deallocazione della memoria in maniera automatica, paradigmi come \textit{RAII},
+i containers con una semantica simile a Java, e se poi passiamo ai container implementati in Qt, hanno un grado di affinit\'a
+ai containers Java molto alto ?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{la GUI: Java, C++ o Python ?}
+(... segue) Questioni:
+\begin{itemize}
+\item Python \'e spesso visto adatto per fare script o applicazioni web-riented: la comunit\'a incontra difficolt\'a a mantenere
+la compatibilit\'a fra le varie versioni delle proprie release, e coi moduli sviluppati da terzi (vedi numpy) la situazione \'e
+ancora peggiore. Ad esempio, nella stessa distribuzione linux ci sono presenti pi\'u versioni di Python installate, a seconda
+dell'applicazione che ne fa uso, e questo a causa della scarsa continuit\'a delle loro API;
+\item i costi dovuti all'aggiornamento alle API nuove (la community Python non sempre garantisce continuit\'a nelle loro release),
+oppure ai bachi di sicurezza che ci si tiene nel caso in cui non si fa l'aggiornamento alla nuova Python X.Y perch\'e richiederebbe
+troppo tempo, potrebbero essere elevati.
+\end{itemize}
+
+\end{frame}
+
+
+
+\section{Il modello di simulazione}
+\begin{frame}{Il modello di simulazione}
+\begin{itemize}
+\item il modello di simulazione: dato che il kernel \'e ragionevolmente in C (o event. CUDA), il modello va bene in Java, Python, o cosa ?
+\item Come fatto positivo della GUI in C++ si pu\'o spostare facilmente classi da C++ a Python; ad es., il mulabModel andrebbe bene
+in Python, ma con la GUI in Java non \'e proprio il caso ... oppure \'e meglio tenere Python relegato alla parte di componentistica poich\'e
+non è "maturo" come Java n\'e tantomeno come C++ che ormai sono trent'anni che esiste; per sviluppare modelli di simulazione complessi \'e
+necessario essere sicuri che il linguaggio sia solido e stabile ?
+\end{itemize}
+
+\end{frame}
+
+
+\section{La concorrenza}
+\begin{frame}{La concorrenza}
+\begin{itemize}
+\item Ci sono vari motivi per cui una simulazione debba essere concorrente: o perch\'e si vuole sfruttare un'accelerazione hardware, o
+perch\'e \'e necessario far dialogare tra loro dei software che non possono essere fusi in unico processo.
+\item Allora, se muLab fosse in C++, come dialogherebbe con il plugin di mplabx ? Con dbus, esiste il modulo QtDbus pronto all'uso.
+Usando Java, ogni chiamata RMI implica una de/serializzazione di oggetti Java, ed un successivo passaggio fra due processi. Tale aspetto
+avverrebbe anche in dbus ovviamente, solo che in Java c'\'e la jvm di mezzo come aggravante.
+\end{itemize}
+\end{frame}
+
+
+
+
+
+\begin{frame}{La concorrenza}
+\begin{itemize}
+\item Con dbus, il plugin $\mu$Lab per MPLAB-X diventa un ibrido Java/C++, nel quale solo le parti che chiamano l'mdbcore rimarrebbero in
+Java mentre il resto, tipo adapters, ecc., in C++. Per\'o cos\'i buttiamo via il layer JNA da una parte e lo ricreiamo dall'altra: vale
+la pena di toccare una parte molto delicata per le prestazioni ( molte chiamate di tipo \textit{StepInstr()} ) ?
+\end{itemize}
+\end{frame}
+
+
+\section{Sviluppare pi\'u codici differenti}
+\begin{frame}{Sviluppare pi\'u codici diversi}
+Creare un applicativo specifico per ogni applicazione o evolvere muLab in un ``framework'' ? 
+Si dovrebbe poter:
+\begin{itemize}
+\item costruire agevolmente modelli di simulazione: l'uso di Python e del linguaggio grafico ad elementi interconnessi va bene;
+\item poter includere librerie numeriche esterne per la soluzione dei modelli: Python va bene, basta fare i dovuti \texttt{import} (con i
+quali però un utente disinvolto può fare danni);
+\item definire agevolmente gli esperimenti: il modello completamente parametrico e le \textit{TestSequence} vanno bene;
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Sviluppare pi\'u codici diversi}
+Creare un applicativo specifico per ogni applicazione o evolvere muLab in un ``framework'' ? 
+Si dovrebbe poter:
+\begin{itemize}
+\item poter fare facilmente il post-processing dei dati della simulazione: l'uso di Python e l'integrazione grafica tra dati della
+simulazione e dati del post-processing vanno bene;
+\item poter costruire una GUI personalizzata: la mulab-PythonComponentLibrary ed il fatto di costruire componenti da LaTeX 
+costituiscono di fatto una GUI virtuale pi\'u generale.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Sviluppare pi\'u codici diversi}
+- caso di studio: software di analisi della corrosione nascosta mediante termografie all'infrarosso (controllo non-distruttivo).
+\end{frame}
+
+\section{Q\&A}
+\begin{frame}{Q\&A}
+\end{frame}
+
+\end{document}

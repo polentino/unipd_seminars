@@ -1,0 +1,375 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{verbatim}
+\captionsetup{compatibility=false}
+%\usepackage[italian]{babel}  
+
+%% Se per qualsiasi motivo non riuscissi a compilare col tema Unipd,
+%% basta commentare la riga qui sotto e si passa automaticamente al
+%% tema beamer di default.
+\usetheme{Unipd}
+
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  %frame=L,
+  xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\fontsize{7}{7}\selectfont\ttfamily,%\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{gray},
+  identifierstyle=\color{blue!40!black},
+  %stringstyle=\color{orange},
+}
+\lstset{escapechar=@,style=customc}
+
+\title{Creazione e Gestione di una API REST}
+%\subtitle{da inserire}
+\author{Diego Casella}
+\date{\today}
+
+
+\begin{document}
+
+\maketitle
+
+
+\begin{frame}{Contenuti} %Outline
+\tableofcontents
+\end{frame}
+
+%% Introduzione
+\section{Introduzione}
+\begin{frame}{Introduzione}
+In questo sesto seminario affronteremo in maniera breve, ma concisa, come realizzare un servizio REST attraverso il quale rendere fruibili dei
+contenuti presenti in un nostro sito.
+\newline
+Enuncieremo inoltre quali siano le \emph{best practices} da adottare e, per comodit\'a, ci appoggieremo al framework Drupal.
+\end{frame}
+
+%
+\section{Cos'	\'e REST}
+\begin{frame}{Cos'	\'e REST}
+Col termine \emph{REST} si intende una tipologia di architettura software che permette di eseguire operazioni in un server
+remoto attraverso l'uso di chiamate HTTP standard. L'acronimo deriva da \emph{Representational State Transfer}, ovvero
+da una architettura software che definisce come le risorse web possano essere definite ed indirizzate con dei semplici url
+e metodi HTTP, attraverso delle precise e definite specifiche che possono essere interpretate dal server.
+\end{frame}
+
+
+\begin{frame}{Cos'	\'e REST - Principi}
+L'architettura REST si fonda sui seguenti principi chiave di progettazione:
+\begin{itemize}
+\item un protocollo, che \'e di tipo client-server, stateless, ed a livelli;
+\item ogni risorsa \'e indirizzabile attraverso un URL univoco;
+\item ogni richesta non pu\'o fare riferimento a pi\'u risorse contemporaneamente;
+\item tutte le risorse sono condivise tra client e server attraverso un'interfaccia (client d\'a un comando e il server torna l'oggetto corrispondente), che consiste in:
+\begin{itemize}
+\item per il comando, un insieme vincolato di operazioni ben definite;
+\item per la risorsa, un insieme vincolato di contenuti;
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Cos'	\'e REST - Esempi}
+Supponiamo che, ad esempio, \emph{http://math.unipd.it} fornisca una interfaccia REST per accedere ai docenti afferenti
+al dipartimento di Matematica, per ognuno dei quali sia possibile accedere al numero di telefono del suo ufficio ed email.
+
+\begin{exampleblock}{Esempio - URL per eseguire una query dei docenti presenti}
+ \emph{http://math.unipd.it/professors} (HTTP method: GET)
+\end{exampleblock}
+
+\end{frame}
+
+
+\begin{frame}{Cos'	\'e REST - Esempi (cont.)}
+Dopo aver individuato il docente interessato, rappresentato da un proprio \emph{id} univoco, si pu\'o richiedere il suo
+numero di telefono o email attraverso le seguenti chiamate:
+
+\begin{exampleblock}{Esempio - Reperimento del numero di telefono}
+ \emph{http://math.unipd.it/professors/$<$id$>$/phone} (HTTP method: GET)
+\end{exampleblock}
+
+\begin{exampleblock}{Esempio - Reperimento dell'email}
+ \emph{http://math.unipd.it/professors/$<$id$>$/email} (HTTP method: GET)
+\end{exampleblock}
+\end{frame}
+
+
+\begin{frame}{Cos'	\'e REST - Metodi HTTP}
+Gli esempi visti fino ad ora hanno sempre interessato dei metodi HTTP di tipo GET, tuttavia esso non \'e l'unico metodo disponibile.
+Esistono infatti pi\'u metodi a diposizione, quelli pi\'u utilizzati sono:
+\begin{itemize}
+\item \emph{GET}, che come visto in precedenza serve ad ottenere una risorsa descritta dall'URL specificato;
+\item \emph{POST}, per modificare ed aggiornare una risorsa nel server;
+\item \emph{PUT}, per creare una nuova risorsa nel server;
+\item \emph{DELETE}, per eliminare una risorsa presente nel server;
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Cos'	\'e REST - Metodi HTTP (cont.)}
+Sebbene POST e PUT possano sembrare due metodi intercambiabili fra di loro, e difatti molti servizi REST li confondono, \'e
+buona prassi utilizzarli tenendo presente che:
+\begin{itemize}
+\item \emph{PUT} viene usato per creare o sovrascrivere una risorsa. \'E un operatore idempotente, e quindi eseguire un PUT
+pi\'u volte consecutive non produce altrettante copie della risorsa;
+\item \emph{POST} invece viene usato per modificare una risorsa, dunque se tale risorsa non esiste viene generato un errore;
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Cos'	\'e REST - Risorse}
+Le risorse che si vogliono ricevere o inviare al server, come detto in precedenza, devono avere una struttura ben definita nei
+contenuti, e vengono descritte tipicamente attraverso un formato di tipo XML oppure JSON, entrambi molto adatti al parsing ed
+al riconoscimento dei campi che li costituiscono.
+\end{frame}
+
+
+\section{Implementazione di REST in Drupal}
+\begin{frame}{Implementazione di REST in Drupal}
+Dopo aver visto brevemente come \'e costituito un servizio REST, ci occuperemo di come implementarlo ed inserirlo in un sito web
+pre-esistente. \'E pensabile di realizzarlo in maniera completamente slegata dal sito stesso, ma questa rappresenta una scelta
+azzardata e limitante, e soprattutto difficilmente mantenibile.
+\newline
+Rifacendoci all'esempio del servizio REST per accedere ai docenti del dipartimento di Matematica, si supponga di aver scritto tutto
+il codice PHP che esegua le query al database dei docenti, delle mail e dei numeri di telefoni ad essi associati. Cosa succede se un aggiornamento al database cambiasse, per ragioni di ottimizzazione/performance, la disposizione delle tabelle, o come le varie
+colonne vengono identificate? Saremmo costretti a rivedere il codice PHP che esegue tale query, con complessit\'a crescente
+col crescere delle propriet\'a presenti in una specifica risorsa.
+\end{frame}
+
+\begin{frame}{Implementazione di REST in Drupal - 2}
+Dunque, per ragioni di manutenibilit\'a, \'e pi\'u saggio appoggiarsi ad un framework esistente, che semplifichi e si prenda carico
+di fornire una astrazione di alto livello per l'accesso ai dati presenti nel sito. Drupal in tal senso \'e un framework molto flessibile
+ed adatto allo scopo essendo modulare, estensibile e documentato.
+\newline
+Grazie a Drupal \'e possibile infatti implementare un servizio REST che sia realizzato come un modulo Drupal stesso, dando la
+possibilit\'a di renderlo dipendente da altri moduli in esso presente o di terze parti, e di fornire una interfaccia web per il suo
+stesso monitoraggio e gestione.
+\end{frame}
+
+
+\section{Modulo Rest Drupal}
+\begin{frame}{Modulo Rest Drupal}
+Una volta decisa la struttura delle url che interessano le chiamate REST, e le risorse che verrano scambiate fra client e server, si
+pu\'o partire con l'implementazione del modulo Drupal che realizzer\'a il servizio REST.
+\newline
+La prima azione da intraprendere \'e il riconoscimento ed il parsing del'URL, fasi necessarie per interpretare l'operazione che l'utente vuole eseguire.
+\end{frame}
+
+\begin{frame}{Modulo Rest Drupal - hook\_menu() }
+Gi\'a in questa fase preliminare si apprezza l'utilizzo di un framework quale Drupal, per riconoscere ed estrarre informazioni
+dall'URL fornito.
+\newline
+Difatti la callback  \href{https://api.drupal.org/api/drupal/modules\%21system\%21system.api.php/function/hook\_menu/7}{hook\_menu()}, reimplementata dal progettista del modulo rest,
+permette di registrare degli URL, estrarre informazioni da esso, ed associarvi una corrispondente funzione che verr\'a invocata
+quando tale URL verr\'a interrogato.
+\end{frame}
+
+\begin{frame}{Modulo Rest Drupal - hook\_menu() }
+\begin{exampleblock}{Esempio di hook\_menu()}
+{\small
+function my\_custom\_module\_menu() \{
+\newline
+\hspace*{5 mm}\$urls['professors/\%/phone'] = array(
+\newline
+\hspace*{10 mm}'page callback' =$>$ `get\_phone\_number',
+\newline
+\hspace*{10 mm}'page arguments' =$>$ array(1),
+\newline
+\hspace*{5 mm});
+\newline
+\hspace*{5 mm}return \$urls;
+\newline
+\}
+\newline
+function get\_phone\_number(\$args) \{
+\newline
+\hspace*{5 mm}\# ensure the correct HTTP method
+\newline
+\hspace*{5 mm}\# do something with the id passed in args array
+\newline
+\hspace*{5 mm}echo my\_format( \$phone\_number ); \# in JSON or XML format
+\newline
+\}
+}
+\end{exampleblock}
+\end{frame}
+
+
+\begin{frame}{Modulo Rest Drupal - Pagina di Gestione}
+%Sebbene questa parte non sia propriamente inerente alla creazione di un servizio REST, essa rappresenta un aspetto che non
+%va assolutamente tralasciato.
+Durante il ciclo di vita del servizio REST, spesso accade che si debba aggiornare o
+fermare tale servizio, per poter effettuare una manutenzione/backup del database, o un upgrade/estensione dell'API.
+\newline
+Ci\'o comporta che il servizio REST vada fermato, ed in tal caso cosa succede dal punto di vista dell'utente utilizzatore del nostro
+servizio?
+\newline
+Di punto in bianco ovviamente, l'applicazione che sfrutta il nostro servizio REST smette di funzionare senza alcuna ragione
+apparente, quindi occorre pianificare anzitempo delle soluzioni per poter mantenere informato l'utente.
+\end{frame}
+
+
+\begin{frame}{Modulo Rest Drupal - Pagina di Gestione - 2}
+Ancora una volta, Drupal si dimostra utile nella semplificazione di questo compito: \'e possibile infatti realizzare una pagina di
+configurazione, accessibile dall'amministratore del sito, che possa ad esempio permettere di impostare il server REST in due
+modalit\'a differenti:
+\begin{itemize}
+\item \emph{online} quando il servizio \'e operazionale;
+\item \emph{maintenance} quando il servizio \'e sotto manutenzione/aggiornamento;
+\end{itemize}
+Cos\i facendo, l'utente \'e costantemente a conoscenza dello stato del servizio.
+\end{frame}
+
+
+\begin{frame}{REST best practices - Docs}
+REST \'e anzitutto una interfaccia attraverso la quale uno sviluppatore accede ad un servizio: una buona API REST \emph{deve} essere corredata di una buona documentazione, tale da:
+\begin{itemize}
+\item descrivere la funzionalit\'a di ogni interfaccia, metodo e risorsa che \'e possibile che appare nell'API pubblica;
+\item corredare quanto pi\'u possibile la documentazione di codice di esempio;
+\item fornire una o pi\'u applicazioni di esempio che consentano di realizzare un eseguibile, per quanto minimale, tale da poter essere preso in esempio ed essere esteso da altri sviluppatori esterni;
+\end{itemize}
+\end{frame}
+
+\begin{frame}{REST best practices - API Versioning}
+Quando si crea e gestisce una qualsiasi API, prima o poi ci si viene a trovare di fronte alla scelta di dover rivedere e talvolta riscrivere porzioni pi\'u o meno grandi di una o pi\'u interfacce presenti. Per questa ragione, \'e consono utilizzare un sistema di versioning composto da due o pi\'u numeri del tipo \emph{v1.2.3}.
+\end{frame}
+
+
+\begin{frame}{REST best practices - API Versioning (2)}
+Nell'esempio precedente,  \emph{v1.2.3}:
+\begin{itemize}
+\item ''1'' indica la \emph{major version}, cio\'e la versione dell'API stessa. A versioni differenti corrispondono API spesso differenti fra loro quindi(classi/metodi rinominati o eliminati, behavior di esse differenti), se si volesse aggiornare una applicazione per fare uso di una versione pi\'u recente di una data API, si deve tener conto di un lavoro consistente per adeguare il codice;
+\item ''2'' indica la \emph{minor version}, ovvero cambiamenti avvenuti nell'API che per\'o sono retrocompatibili, come ad
+ esempio aggiunta di nuovi metodi o classi;
+\item ''3'' indica la \emph{patch version}, ed \' un numero che viene incrementato a seconda delle patch e bug fixes introdotti;
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{REST best practices - API Versioning (3)}
+Ora che abbiamo visto l'utilit\'a dell'API versioning, \'e opportuno fare in modo che tale stringa sia integrata nell'URL.
+Cos\'i facendo infatti, si rende l'API stessa esplorabile tramite un browser web (per quanto possibile), facilitando il lavoro dello
+sviluppatore, soprattutto agli inizi, oltre ovviamente al fatto di rendere obbligatorio specificare quale API version adottare.
+\end{frame}
+
+
+\begin{frame}{REST best practices - Accesso risorse}
+Utilizzare \emph{nomi}, non \emph{verbi}, per specificare quale collezione di risorse accedere.
+\begin{exampleblock}{Esempio}
+\emph{http://math.unipd.it/getprofessors} \# sbagliato
+\newline
+\emph{http://math.unipd.it/professors} \# corretto
+\end{exampleblock}
+Questo perch\'e \'e tramite il tipo di metodo HTTP (GET, POST, PUT, DELETE) che andremo ad istruire il server su quale azione
+intraprendere in una determinata risorsa, non attraverso l'URL!
+\end{frame}
+
+
+\begin{frame}{REST best practices - Accesso risorse (2)}
+Rendere ogni elemento di una collezione indirizzabile tramite \emph{id} univoco, mentre le sue propriet\'a tramite nome. Se
+una propriet\'a \'e a sua volta una collezione di risorse, le sue sottorisorse vanno anch'esse riferite tramite \emph{id}.
+\begin{exampleblock}{Esempio}
+\emph{http://math.unipd.it/professors/143/mail}
+\newline
+\emph{http://math.unipd.it/professors/143/pubblications/5} 
+\end{exampleblock}
+\end{frame}
+
+
+\begin{frame}{REST best practices - Complessit\'a}
+Con l'aumentare del numero delle risorse cresce, in maniera proporzionale, la lunghezza dell'URL necessaria per eseguire una
+query. \'E facile intuire che in situazioni reali, questo si traduce in URL troppo estese: \'e necessario dunque suddividere tale
+complessit\'a fra URL e risorse scambiate col server.
+\newline
+Questo \'e fondamentale soprattutto perch\'e, in linea di principio, non si vuole creare un ingorgo nel server dovuto a troppe
+richieste a propriet\'a o risorse dettagliate: meglio ritornare piuttosto una risorsa pi\'u consistente, che poi il client elaborer\'a
+separatamente.
+\end{frame}
+
+
+\begin{frame}{REST best practices - Ritornare sempre una risorsa}
+Nel caso l'HTTP request sia di tipo GET, questo \'e ovvio. Meno intuitivo \'e il caso dei metodi POST, PUT, e DELETE. Dal momento
+che comunque questi metodi cambiano una risorsa presente nel server, questo comporta che l'utilizzatore dell'API voglia anche
+sapere cosa \'e successo alla risorsa interessata \emph{dopo} la sua modifica. Quindi \'e preferibile evitare di fargli eseguire
+due richieste HTTP differenti. Semplicemente, si faccia in modo da ritornare la risorsa aggiornata, e sar\'a poi a discrezione
+del programmatore tenerne conto o meno.
+\end{frame}
+
+
+\begin{frame}{REST best practices - Due URL per risorsa}
+Questo \'e intuitivo, in quanto dobbiamo fornire operazioni per molteplici valori, e anche per il singolo valore.
+\begin{exampleblock}{Esempio - GET (lettura)}
+GET \emph{http://math.unipd.it/professors} \# ritorna tutti i professori
+\newline
+GET \emph{http://math.unipd.it/professors/143} \# ritorna uno specifico
+\end{exampleblock}
+\begin{exampleblock}{Esempio - POST (inserzione)}
+POST \emph{http://math.unipd.it/professors} \# inserisce un nuovo professore
+\newline
+POST \emph{http://math.unipd.it/professors/143} \# Errore, l'id \'e generato dal server, noi non possiamo dire di creare
+una risorsa con un determinato id
+\end{exampleblock}
+Nota: tenere a mente che la risorsa dove sta operando il metodo HTTP \'e \emph{professors}.
+
+\end{frame}
+
+\begin{frame}{REST best practices - Due URL per risorsa}
+\begin{exampleblock}{Esempio - PUT (update)}
+PUT \emph{http://math.unipd.it/professors} \# aggiorna la risorsa \emph{professors} in blocco
+\newline
+PUT \emph{http://math.unipd.it/professors/143} \# aggiorna la risorsa con id=143, altrimenti d\'a errore: questo perch\'e
+l'inserzione \'e adibita al metodo POST.
+\end{exampleblock}
+\begin{exampleblock}{Esempio - DELETE (rimozione)}
+DELETE \emph{http://math.unipd.it/professors/} \# rumuove tutti i professori
+\newline
+DELETE \emph{http://math.unipd.it/professors/143 \#  rimuove il professore con id=143}
+\end{exampleblock}
+
+\end{frame}
+
+
+\begin{frame}{REST best practices - Errori}
+Nel caso si verifichi un errore, \'e necessario fornire adeguate informazioni all'utilizzatore dell'API. Solitamente \'e consuetudine
+utilizzare codici di errore che siano compatibili con lo standard HTTP (200 - Ok, 404 - Not Found ecc..), comprensivi inoltre di
+un internal error code specifico per il servizio utilizzato, una stringa che dia maggiori informazioni sul tipo di errore. Inoltre
+ sarebbe preferibile predisporre un campo che contenga un link alla pagina web dell'errore corrispondente, per cercare di guidare
+ l'utente finale ad una risoluzione del problema.
+\end{frame}
+
+
+\begin{frame}{REST best practices - JSON vs XML}
+Altra considerazione da fare riguarda il tipo di formato col quale esprimere le risorse scambiate tramite REST API. XML \'e stato
+per anni lo standard de facto per REST, tuttavia tale linguaggio \'e ridondante, di difficile parsing, e la sua capacit\'a di essere
+esteso \'e completamente ininfluente in un contesto dove l'unico scopo \'e quello di serializzare informazioni contenute in un
+server al mondo esterno.
+\newline
+Si preferisce quindi utilizzare lo schema JSON, che invece \'e pi\'u semplice da utilizzare e elaborare.
+\end{frame}
+
+
+\section{Conclusioni}
+\begin{frame}{Conclusioni}
+\end{frame}
+
+\section{Riferimenti}
+\begin{frame}{Riferimenti}
+\begin{itemize}
+\item \emph{Representational State Transfer}, \url{http://en.wikipedia.org/wiki/Representational\_State\_Transfer} ;
+\item \emph{Best Practices for Designing a Pragmatic RESTful API}, \url{www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api} ;
+\item \emph{5 Best Practices for Better RESTful API Development}, \url{http://devproconnections.com/web-development/restful-api-development-best-practices} ;
+\end{itemize}
+\end{frame}
+
+\section{Q\&A}
+\begin{frame}{Q\&A}
+\end{frame}
+
+\end{document}

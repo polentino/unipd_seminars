@@ -1,0 +1,297 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{verbatim}
+\captionsetup{compatibility=false}
+%\usepackage[italian]{babel}  
+
+%% Se per qualsiasi motivo non riuscissi a compilare col tema Unipd,
+%% basta commentare la riga qui sotto e si passa automaticamente al
+%% tema beamer di default.
+\usetheme{Unipd}
+
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  %frame=L,
+  xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\fontsize{7}{7}\selectfont\ttfamily,%\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{gray},
+  identifierstyle=\color{blue!40!black},
+  %stringstyle=\color{orange},
+}
+\lstset{escapechar=@,style=customc}
+
+\title{Iaas/Saas computing, storage}
+%\subtitle{da inserire}
+\author{Diego Casella, Fabio Marcuzzi}
+\date{\today}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Contenuti} %Outline
+\tableofcontents
+\end{frame}
+
+%% Introduzione
+\section{Introduzione}
+\begin{frame}{Introduzione}
+Quest'oggi parleremo dei \emph{Iaas/SaaS}, e di altri paradigmi \emph{"as a Service"} che sono sorti negli ultimi anni in ambito Web e Cloud.
+
+
+\end{frame}
+
+
+% texit o emph non funzionano in section ...
+\section{Paradigma ``$as$ $a$ $Service$''}
+\begin{frame}{Paradigma ``\emph{as a Service}''}
+ Negli ultimi anni sono emersi diversi tipi di paradigmi ``\emph{as a Service}'', differenziatisi per contradistinguere il servizio
+ offerto all'utente fruitore di esso. I paradigmi ``\emph{as a Service}'' pi\'u conosciuti sono:
+ \begin{itemize}
+\item \emph{Software as a Service};
+\item \emph{Platform as a Service};
+\item \emph{Infrastructure as a Service};
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Paradigma ``\emph{as a Service}'' - SaaS}
+Nel \emph{Software as a Service} l'utente ottiene un SO perfettamente configurato e settato per poter funzionare col
+software con il quale intende lavorare. Eventuali update, sia del software che dell'hardware, settaggi e configurazioni vengono
+realizzati dal fruitore del servizio.
+\begin{exampleblock}{Esempio}
+Wordpress fornisce un hosting gratuito per poter realizzare il proprio blog: gli utenti utilizzano l'istanza di Wordpress, senza
+doversi preoccupare di effettuare updates dei software correlati (PHP o MYSQL), di migrare i contenuti in webserver pi\'u
+capienti ecc...
+\end{exampleblock}
+\end{frame}
+
+
+\begin{frame}{Paradigma ``\emph{as a Service}'' - PaaS}
+Il \emph{Platform as a Service} fornisce ai clienti un un ambiente predefinto, la ``Platform'',  nella quale essi possono
+sviluppare e rilasciare il proprio software in maniera efficiente e veloce.
+\begin{exampleblock}{Esempio}
+Google App Engine.
+\end{exampleblock}
+\end{frame}
+
+
+\begin{frame}{Paradigma ``\emph{as a Service}'' - IaaS}
+Nell' \emph{Infrastructure as a Service} gli utenti mettono mano alle macchine stesse - server, storage, networks - fornite sotto
+forma di virtual environment, nei quali possono settare gli OS desiderati e internconnetterle come desiderano.
+\begin{exampleblock}{Esempio}
+Servizio Amazon Web Services.
+\end{exampleblock}
+\end{frame}
+
+
+\section{Integrazione di strumenti di terze parti}
+\begin{frame}{Integrazione di strumenti di terze parti}
+Facendo riferimento allo IaaS, vediamo alcuni strumenti fondamentali per corredare il SaaS di servizi fondamentali e rendere la user experience quanto pi\'u completa ed efficace possibile, in particolare:
+\begin{itemize}
+\item accounting dell'utilizzo del servizio;
+\item gestione dei dati utente (WinSCP va bene, ma si pu\'o fare di meglio);
+\end{itemize}
+\end{frame}
+
+
+\subsection{Accounting}
+\begin{frame}{Accounting}
+Il primo strumento presentato, sebbene sia quello meno visibile all'utente, \'e quello che gestisce l'accounting ed in generale i dati
+sensibili di un determinato utente come le credenziali di login, i dati sulla contabilizzazione e la cronologia dell'utilizzo del software.
+Tali informazioni devono essere mantenute confidenziali, e tale segretezza va quanto pi\'u possibile mantenuta anche in caso
+di falle del sistema da parte di agenti esterni.
+\end{frame}
+
+\begin{frame}{Accounting - Windows Azure}
+A tal proposito, pensare di salvare tale informazioni direttamente nel profilo utente rappresenta una scelta davvero poco
+oculata, per molteplici ragioni:
+\begin{itemize}
+\item per implementare un sistema di storage \emph{in-house} sicuro e robusto occorre impegnare risorse, intese sia come
+sviluppatori, che come tempo;
+\item esistono gi\'a servizi online che offrono questo tipo di funzionalit\'a e, essendo specializzate in questo ambito, sono
+molto pi\'u sicure ed affidabili di quanto si possa pensare di ottenere con una soluzione \emph{in-house};
+\end{itemize}
+Per queste serie di motivazioni, \'e ragionevole utilizzare ad esempio il framework \emph{Windows Azure}, che consente di tenere sicure e riservate
+le informazioni utente in uno \textit{storage cloud} separato dal server dove vengono eseguite le applicazioni.
+\end{frame}
+
+
+\subsection{Storage}
+\begin{frame}{Storage}
+Lo storage rappresenta un altro punto focale nell'uso del \textit{software as a service}: l'utente deve essere in grado di inviare
+ e ricevere dal proprio computer al server cloud, in
+ maniera semplice ed immediata, vari tipi di files: 
+\begin{itemize}
+\item documenti di testo (es. /\LaTeX), 
+\item intere cartelle (progetti firmware, testbench, ecc...)
+\item script Python, sorgenti C, ... .
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Storage - WinSCP}
+Strumenti come WinSCP sono utili per trasferire files da un computer locale ad un server remoto ma, essendo tool generici,
+mancano di alcune caratteristiche fondamentali per il SaaS, come:
+\begin{itemize}
+\item la sincronizzazione automatica dei files; 
+\item la possibilit\'a di gestirne il versioning.
+\end{itemize}
+Inoltre, un progetto non viene mai sviluppato da una singola persona ma da un gruppo di lavoro,
+ e dunque \'e necessario che gli elementi costitutivi vengano raccolti in un repository comune, al quale tutti abbiano accesso, da
+ qualsiasi postazione essi accedano.
+\end{frame}
+
+\begin{frame}{Storage - DropBox}
+Viste le considerazioni precedenti, un ottimo software che ben si presta allo scopo \'e DropBox. Esso infatti fornisce:
+\begin{itemize}
+\item servizio di file synchronization;
+\item servizio di file versioning;
+\item developer API disponibile in Java, utile per integrare le sue funzionalit\'a direttamente nell'applicazione offerta in modalit\'a SaaS.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Storage - DropBox API}
+\begin{exampleblock}{Esempio - Autenticazione}
+{\small
+private static final String APP\_KEY = "INSERT\_APP\_KEY";
+\newline
+private static final String APP\_SECRET = "INSERT\_APP\_SECRET";
+\newline
+DbxAppInfo appInfo = new DbxAppInfo(APP\_KEY, APP\_SECRET);
+\newline
+DbxRequestConfig config = new DbxRequestConfig( "com.casella.testapp", "");
+\newline
+DbxWebAuthNoRedirect webAuth = new DbxWebAuthNoRedirect(config, appInfo);
+\newline
+String authorizeUrl = webAuth.start();
+\newline
+// copy the url, get the auth code
+\newline
+DbxAuthFinish authFinish = webAuth.finish(code);
+\newline
+DbxClient client = new DbxClient(config, authFinish.accessToken);
+}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Storage - DropBox API}
+\begin{block}{DbxClient API}
+{\small
+DbxEntry	copy(String fromPath, String toPath);
+\newline
+DbxEntry.Folder	createFolder(String path)
+\newline
+void	delete(String path)
+\newline
+DbxEntry.File	getFile(String path, String rev, OutputStream target)
+\newline
+DbxEntry.WithChildren	getMetadataWithChildren(String path)
+\newline
+DbxClient.Downloader	startGetFile(String path, String revision)
+\newline
+DbxClient.Uploader	startUploadFile(String targetPath, DbxWriteMode writeMode, long numBytes)
+}
+\end{block}
+
+\begin{exampleblock}{Esempio - Visualizzazione File Remoti}
+{\small
+DbxEntry.WithChildren listing = client.getMetadataWithChildren("/");
+\newline
+for (DbxEntry child : listing.children) \{
+\newline
+\hspace*{5 mm}System.out.println( child.name + ": " + child.toString() );
+\newline
+\}
+}
+\end{exampleblock}
+\end{frame}
+
+
+
+\begin{frame}{Storage - EverNote}
+Un sottoinsieme particolare del servizio di storage \'e rappresentato dallo storage di appunti o note, che possono essere
+sincronizzate e condivise fra pi\'u client. A volte infatti, si pensi per esempio a CfL, condividere file di testo \'e pi\'u che
+sufficiente, e l'utilizzo di DropBox in tal caso risulta pi\'u complicato del necessario. Per questa ragione si pu\'o pensare di integrare dei servizi di
+notetaking, come ad esempio il famoso EverNote che offre molte funzionalit\'a interessanti fra le quali
+\begin{itemize}
+\item servizio sincronizzazione delle note;
+\item annotazione su PDF;
+\item riconoscimento scrittura a mano;
+\item developer API disponibile in Java, utile per integrare le sue funzionalit\'a direttamente nell'applicazione offerta in modalit\'a SaaS;
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Storage - EverNote API}
+\begin{exampleblock}{Esempio - Autenticazione}
+{\small
+private static final String AUTH\_TOKEN = "your developer token";
+\newline
+EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,  AUTH\_TOKEN);
+\newline
+ClientFactory factory = new ClientFactory(evernoteAuth);
+\newline
+NoteStoreClient noteStore = factory.createNoteStoreClient();
+}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Storage - EverNote API}
+\begin{exampleblock}{Esempio - Lettura Note Esistenti}
+{\small
+List$<$Notebook$>$ notebooks = noteStore.listNotebooks();
+\newline
+for (Notebook notebook : notebooks) \{
+\newline
+\hspace*{5 mm}System.out.println("Notebook: " + notebook.getName());
+\newline
+\hspace*{5 mm}NoteFilter filter = new NoteFilter();
+\newline
+\hspace*{5 mm}// settaggio filter
+\newline
+\hspace*{5 mm}...
+\newline
+\hspace*{5 mm}// cerca le prime 100 note corrispondenti al filtro indicato
+\newline
+\hspace*{5 mm}NoteList noteList = noteStore.findNotes(filter, 0, 100);
+\newline
+\hspace*{5 mm}for (Note note : notes) \{
+\newline
+\hspace*{10 mm} System.out.println( note.getTitle() );
+\newline
+\hspace*{5 mm} \}
+\newline
+\}
+}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Storage - Ricapitolazione}
+Abbiamo visto finora come sia possibile rendere semplice la sincronizzazione di file, documenti e progetti, che si trovano in pi\'u
+locazioni differenti, all'interno dello spazio di lavoro presente nel server cloud. Quello che non abbiamo ancora visto \'e
+se sia possibile, ed in tal caso come attuare, una gestione \emph{nel server} del progetto in maniera indipendente da dove esso
+sia arrivato, fornendo la possibilt\'a di creare degli \emph{snapshot} dello stato del progetto ogni qual volta l'utente senza
+il bisogno di salvare lo stato del progetto in un determinato punto del suo sviluppo.
+\end{frame}
+
+\subsection{Versioning}
+\begin{frame}{Versioning}
+Come conseguenza della considerazione fatta poco fa, si capisce che non \'e importante solo poter inviare, ricevere, sincronizzare
+files da pi\'u computer remoti al server cloud; \'e anche necessario fornire un meccanismo di versioning, all'interno del server,
+che renda possibile memorizzare il progetto ed i suoi files costituenti, a discrezione dell'utente.
+\newline
+Per questa ragione si pu\'o pensare di utilizzare Subversion, Git o altri sistemi di version control, e di integrarli nell'applicazione offerta in modalit\'a SaaS, per poter offire una interfaccia semplificata e funzionale all'utente.
+\end{frame}
+
+\section{Q\&A}
+\begin{frame}{Q\&A}
+\end{frame}
+
+\end{document}

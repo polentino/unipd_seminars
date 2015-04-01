@@ -1,0 +1,24 @@
+% \ProvidesPackageRCS Unipd
+
+\RequirePackage{ifthen}
+
+\newif\ifbeamerunipdnologos
+\beamerunipdnologostrue
+\DeclareOptionBeamer{nologos}{\beamerunipdnologosfalse}
+
+\DeclareOptionBeamer{compress}{\beamer@compresstrue}
+
+\ProcessOptionsBeamer
+
+\mode<presentation>
+
+\useinnertheme{rectangles}
+\useoutertheme{Unipd}
+\usecolortheme{Unipd}
+\usefonttheme{Unipd}
+
+\setbeamertemplate{navigation symbols}{}
+% \setbeamertemplate{blocks}[rounded][shadow=false]
+
+\mode
+<all>

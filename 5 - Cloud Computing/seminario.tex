@@ -1,0 +1,167 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{verbatim}
+\captionsetup{compatibility=false}
+%\usepackage[italian]{babel}  
+
+%% Se per qualsiasi motivo non riuscissi a compilare col tema Unipd,
+%% basta commentare la riga qui sotto e si passa automaticamente al
+%% tema beamer di default.
+\usetheme{Unipd}
+
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  %frame=L,
+  xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\fontsize{7}{7}\selectfont\ttfamily,%\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{gray},
+  identifierstyle=\color{blue!40!black},
+  %stringstyle=\color{orange},
+}
+\lstset{escapechar=@,style=customc}
+
+\title{Cloud Computing}
+%\subtitle{da inserire}
+\author{Diego Casella, Fabio Marcuzzi}
+\date{\today}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Contenuti} %Outline
+\tableofcontents
+\end{frame}
+
+%% Introduzione
+\section{Introduzione}
+\begin{frame}{Introduzione}
+In questo quinto  seminario, analizzeremo quali strumenti e servizi siano disponibili per potere realizzare una
+applicazione che sfrutti in pieno le potenzialit\'a offerte dal cloud. Ci concentreremo su di alcuni servizi web pi\'u diffusi ed
+alla luce di essi, quali criticit\'a possono insorgere nel software e quali possibili soluzioni adottare.
+\end{frame}
+
+
+%
+\section{Amazon Elastic Compute Cloud}
+\begin{frame}{Amazon Elastic Compute Cloud}
+Amazon Elastic Compute Cloud, d'ora in poi \emph{Amazon EC2} o \emph{EC2} per brevit\'a, \'e un servizio che mette a disposizione dell'utente \emph{capacit\'a di calcolo ridimesionabile}, 
+sollevando l'utente dall'onere di investire in hardware performante ed alla sua inevitabile manutenzione.
+\end{frame}
+
+
+\begin{frame}{Amazon EC2 - Caratteristiche}
+Le caratteristiche offerte dal servizio \emph{Amazon EC2} sono:
+\begin{itemize}
+\item ambienti di virtual computing, dette \emph{istanze};
+\item template pre-configurati di tali instanze, dette \emph{Amazon Machine Images} o \emph{AMI}, contenenti quanto necessario per avere un server operativo;
+\item storage temporaneo, che serve per immagazzinare dati che poi vengono eliminati quando viene spenta o terminata una associata istanza, detto \emph{instance storage volume};
+\item storage persistente che utilizza gli \emph{Amazon Elastic Block Store}, o \emph{Amazon EBS}, organizzato in uno o pi\'u \emph{Amazon EBS  volumes};
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Amazon EC2 - Caratteristiche (2)}
+Le caratteristiche offerte dal servizio \emph{Amazon EC2} sono:
+\begin{itemize}
+\item firewall configurabile;
+\item indirizzo IP statico per dynamic cloud computing, denominato \emph{Amazon Elastic IP Address};
+\item locazioni fisiche multiple, come ad esempio di istanze o volumi \emph{EBS}, dette regioni o \emph{Availabilty Zones}, che consentono di assegnare istanze a determinate
+zone geografiche, ad esempio Europa o Stati Uniti, per migliorare la distribuzione del carico di lavoro e la latenza degli applicativi;
+\item metadata, dette anche \emph{tags}, che possono essere create ed assegnate alle varie risorse \emph{Amazon EC2};
+\item reti virtuali logicamente separate dal resto del cloud AWS, ma che possono essere connesse alla propria rete, dette \emph{Virtual Private Clouds} o \emph{VPCs};
+\end{itemize}
+\end{frame}
+
+
+\section{Amazon Elastic Compute Cloud - API}
+\begin{frame}{Amazon Elastic Compute Cloud2 - API}
+\begin{exampleblock}{Esempio - AmazonEC2Client}
+{\small
+AWSCredentials credentials = new AWSCredentials(...);
+\newline
+AmazonEC2Client client = new AmazonEC2Client( credentials );
+\newline
+ // allocates an Elastic IP address
+\newline
+AllocateAddressResult r = client.allocateAddress();
+\newline
+// copies an existing AMI
+CopyImageResult r = client.copyImage(new CopyImageRequest(...));
+\newline
+// starts an AMI
+\newline
+client.startInstances(new StartInstancesRequest(...));
+\newline
+// stops an AMI
+\newline
+client.stopInstances(new StopInstancesRequest(...));
+}
+\end{exampleblock}
+\end{frame}
+
+
+\section{Amazon Elastic MapReduce}
+\begin{frame}{Amazon Elastic MapReduce}
+\emph{Amazon Elastic MapReduce}, abbreviato \emph{Amazon EMR}, \'e un webservice che permette di processare grandi moli di dati. Esso utilizza Apache Hadoop, framework per il calcolo distribuito su server o cluster di servers, il quale si prende carico di assegnare i dati nelle varie istanze di \emph{Amazon EC2}. Viene usato in molteplici ambiti, dal machine learning all'analisi finanziaria.
+\end{frame}
+
+
+\begin{frame}{Amazon Elastic MapReduce}
+I vantaggi che \emph{Amazon EMR} fornisce sono:
+\begin{itemize}
+\item si pu\'o lanciare un cluster \emph{Amazon EMR} in pochi minuti;
+\item non serve incaricarsi del setup dei nodi, del/i cluster, di Hadoop, del loro tuning a seconda dei dati processati;
+\item \'e scalabile a piacimento, a seconda della dimensione dei dati usati;
+\item ogni istanza \'e comunque configurabile singolarmente:  il sistemista ha accesso root in ogni singola macchina;
+\item sicurezza, dato che \emph{Amazon EMR} pu\'o essere fatto girare all'interno di una \emph{Amazon VPC}, logicamente separata dall'esterno;
+\end{itemize}
+\end{frame}
+
+
+\section{Amazon Elastic MapReduce - API}
+\begin{frame}{Amazon Elastic MapReduce - API}
+\begin{exampleblock}{Esempio - AmazonElasticMapReduceClient}
+{\small
+client = AmazonElasticMapReduceClient( new AWSCredentials(...) );
+\newline
+client.addInstanceGroups(new AddInstanceGroupsRequest(...) );
+\newline
+client.runJobFlow( new RunJobFlowRequest(...) );
+\newline
+client.terminateJobFlow( new TerminateJobFlowRequest(...) );
+\newline
+client.listClusters();
+}
+\end{exampleblock}
+\end{frame}
+
+
+\section{Possibli Utilizzi dei servizi AWS}
+\begin{frame}{Possibli Utilizzi dei servizi AWS}
+\'E ragionevole pensare, alla luce di questi servizi visti fino ad ora, di poter evolvere un applicativo pensato per l'utilizzo nel cloud, in maniera tale da potere scalare in maniera
+efficiente con la taglia del problema computazionale che gli viene sottoposto. Attraverso l'uso dell'API resa disponibile per i servizi AWS, \'e ipotizzabile poter evolvere un applicativo nel cloud
+in maniera tale da poter utilizzare pi\'u potenza di calcolo, quando se ne presenti la necessit\'a, e tutto ci\'o in maniera del tutto trasparente all'utente finale che non sa, e non \'e
+necessario che se ne renda conto, di cosa sta avvenendo in background.
+\end{frame}
+
+
+\begin{frame}{Possibli Utilizzi dei servizi AWS}
+Sebbene questa evoluzione rappresenti un notevole vantaggio per aumentare le performance dell'applicativo in analisi, ci sono ovviamente altri aspetti da tenere in considerazione, come
+il redesign dell'applicativo per poter sfruttare i nuovi servizi, la gestione delle istanze, dei volumi di storage, ecc..
+\end{frame}
+
+\section{Q\&A}
+\begin{frame}{Q\&A}
+\end{frame}
+
+\end{document}
